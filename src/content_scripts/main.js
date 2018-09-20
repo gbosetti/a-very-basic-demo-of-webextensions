@@ -1,7 +1,17 @@
 class ContentPageManager{
 
 	highlightCurrentDom(args){
-		document.querySelector("body").style["background-color"] = args.color;
+
+		var sentiment = new Sentimood();
+
+		document.querySelectorAll("label, p, h1, h2, h3").forEach(div => {
+
+			var result = sentiment.analyze(div.textContent);
+			if(div.style){
+				if (result.score > 1) div.style["background-color"] = "green";
+				else if (result.score <= -1) div.style["background-color"] = "red";
+			}
+		})
 	}
 }
 

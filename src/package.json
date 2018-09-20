@@ -9,6 +9,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "i": "^0.3.6",
+    "npm": "^6.4.1",
+    "sentimood": "git+https://github.com/gbosetti/sentimood.git",
     "webextension-polyfill": "^0.2.1"
   }
 }
