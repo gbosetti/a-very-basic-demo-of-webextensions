@@ -8,6 +8,13 @@ class BackgroundExtension{
 			});
 		});
 	}
+	enableTopicsExtraction(){
+		this.getCurrentTab().then((tabs) => {
+			browser.tabs.sendMessage(tabs[0].id, {
+				call: "enableTopicsExtraction"
+			});
+		});
+	}
 	getCurrentTab(callback) {
 		return browser.tabs.query({
 			active: true,
@@ -19,5 +26,5 @@ class BackgroundExtension{
 var extension = new BackgroundExtension();
 
 browser.browserAction.onClicked.addListener(() => {
-  extension.highlightCurrentDom();
+  extension.enableTopicsExtraction();
 });
