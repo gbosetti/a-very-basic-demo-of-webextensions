@@ -1,5 +1,6 @@
 class BackgroundExtension{
 
+
 	highlightCurrentDom(){
 		this.getCurrentTab().then((tabs) => {
 			browser.tabs.sendMessage(tabs[0].id, {
@@ -30,34 +31,59 @@ class BackgroundExtension{
 				var parser = new DOMParser();
 				var doc = parser.parseFromString(oReq.response, "text/html");
 
-				console.log("paso 001");
-
 				var news = doc.querySelectorAll(".item");
-				console.log("paso 002", news);
 				var jsonNews = [];
 
 				news.forEach(elem => jsonNews.push(elem.querySelector(".title").innerText));
-				console.log("paso 003", jsonNews);
 
 				resolve(jsonNews);
 			};
 
-			oReq.open("GET", "https://www.....com/search?text=" + args.keywords);
-			oReq.send();
+			browser.storage.local.get("config").then(data => {
+				oReq.open("GET", data.config.apiUrl + args.keywords);
+				oReq.send();
+			});
 		});
 	}
 }
 
-var extension = new BackgroundExtension();
+var startBackground = function(config) {
 
-browser.browserAction.onClicked.addListener(() => {
-  extension.enableTopicsExtraction();
-});
+	var extension = new BackgroundExtension(config.apiUrl);
 
-browser.runtime.onMessage.addListener((request, sender) => {
+	browser.browserAction.onClicked.addListener(() => {
+	  extension.enableTopicsExtraction();
+	});
 
-	console.log("[background-side] calling the message: " + request.call);
-	if(extension[request.call]){
-		return extension[request.call](request.args);
-	}
+	browser.runtime.onMessage.addListener((request, sender) => {
+
+		console.log("[background-side] calling the message: " + request.call);
+		if(extension[request.call]){
+			return extension[request.call](request.args);
+		}
+	});
+}
+
+function checkExpectedParameters(config){
+
+	if (config == undefined)
+		return false;
+
+    var foundParams = ["apiUrl"].filter(param => (param && config.hasOwnProperty(param)));
+    return (config.length == foundParams.length);
+}
+
+console.log(browser);
+
+browser.storage.local.get("config").then(data => {
+
+    if (!checkExpectedParameters(data.config)) {
+
+        data.config = {
+        	"apiUrl": ""
+        };
+        //Si no se setea, se puede perder consistencia con lo que se lee en la pagina de config
+        browser.storage.local.set({ "config": data.config }).then(() => startBackground(data.config));
+    }
+    else startBackground(data.config);
 });
